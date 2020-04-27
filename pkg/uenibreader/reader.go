@@ -5,6 +5,7 @@
    SPDX-License-Identifier: BSD-3-Clause-Clear
 */
 
+//Package uenibreader implements UE-NIB database event subscription and data query functions.
 package uenibreader
 
 import (
@@ -39,7 +40,6 @@ func NewReader() *Reader {
 func (reader *Reader) Close() error {
 	err := reader.db.Close()
 	if err != nil {
-		//@todo logging
 		return newBackendError(err.Error())
 	}
 	return err

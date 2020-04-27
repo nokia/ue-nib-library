@@ -5,6 +5,7 @@
    SPDX-License-Identifier: BSD-3-Clause-Clear
 */
 
+//Package uenib provides UE-NIB public data types.
 package uenib
 
 import (
@@ -28,6 +29,8 @@ type ErabID uint32
 type Bearer struct {
 	ErabID    ErabID
 	DrbID     uint32
+	ArpPL     uint32
+	Qci       uint32
 	S1ULGtpTE TunnelEndpoint
 }
 
@@ -45,8 +48,8 @@ type Cell struct {
 
 //UeState is a holder for a UE state.
 type UeState struct {
-	Event     string
-	Timestamp string
+	Event string //A string of a timestamp and UE's last X2 message what UE-NIB has detected.
+	Cause string //X2 message's Cause IE value what UE-NIB has lastly detected.
 }
 
 //Helper function to print UeID.
