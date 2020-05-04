@@ -75,10 +75,10 @@ func TestSubscribeEventsFailure(t *testing.T) {
 	err := i.SubscribeEvents([]string{someGNb}, []uenibreader.EventCategory{someEventCategory},
 		func(string, uenibreader.EventCategory, []string) {})
 	assert.NotNil(t, err)
-	temporalFailure, ok := err.(uenibreader.Error)
+	uenibError, ok := err.(uenibreader.Error)
 	assert.Equal(t, true, ok)
-	assert.Equal(t, true, temporalFailure.Temporary())
-	assert.Contains(t, err.Error(), "UE-NIB database backend error")
+	assert.Equal(t, true, uenibError.Temporary())
+	assert.Contains(t, err.Error(), "database backend error: Some DB Backend Error")
 	m.AssertExpectations(t)
 }
 
@@ -104,9 +104,10 @@ func TestSubscribeEventsUnknownEventCategoryFailure(t *testing.T) {
 	unknownEventCategory := uenibreader.EventCategory(9999999999)
 	err := i.SubscribeEvents([]string{someGNb}, []uenibreader.EventCategory{unknownEventCategory}, tracker.callback)
 	tracker.verify(t, 0)
-	_, ok := err.(uenibreader.Error)
-	assert.Equal(t, false, ok)
-	assert.Contains(t, err.Error(), fmt.Sprintf("UE-NIB validation error: Unknown event category ID: %d", unknownEventCategory))
+	uenibError, ok := err.(uenibreader.Error)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, false, uenibError.Temporary())
+	assert.Contains(t, err.Error(), fmt.Sprintf("validation error: Unknown event category ID: %d", unknownEventCategory))
 	m.AssertExpectations(t)
 }
 

@@ -65,6 +65,6 @@ func TestCloseDbBackendFailure(t *testing.T) {
 	uenibFailure, ok := err.(uenibreader.Error)
 	assert.Equal(t, true, ok)
 	assert.Equal(t, true, uenibFailure.Temporary())
-	assert.Contains(t, uenibFailure.Error(), "UE-NIB database backend error: Some DB Backend Error")
+	assert.Contains(t, uenibFailure.Error(), "database backend error: Some DB Backend Error")
 	m.AssertExpectations(t)
 }

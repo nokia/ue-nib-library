@@ -16,15 +16,20 @@ const (
 	//DualConnectivity events are triggered after dual connectivity related data has been updated.
 	//
 	//Following events are possible in this category:
-	//    <UE_ID>_ESTABLISH
+	//    <UE_ID>_<S1UL_TUN_ENDPOINT>_S1UL_TUNNEL_ESTABLISH
 	//        -UE ENDC established.
-	//    <UE_ID>_RELEASE
+	//    <UE_ID>_<S1UL_TUN_ENDPOINT>_S1UL_TUNNEL_RELEASE
 	//        -UE ENDC released.
 	//    GNB_ALL_UES_REMOVE
 	//        All UEs within the gNB were removed.
-	//Where <UE_ID> identifies an UE in question and it consists of three sub-fields:
+	//
+	//<UE_ID> identifies an UE in question. It consists of three sub-fields:
 	//<GNb>#<GNbUeX2ApID>#<ENbUeX2ApID>. Note that GNb is form of a RanName:
 	//<Antenna-Type>:<3 MCC digits>-<3 MNC digits>-<Node ID>.
+	//<S1UL_TUN_ENDPOINT> identifies UE bearer's S1 uplink GTP tunnel endpoint. It consists of two
+	//sub-fields:
+	//<Transport address>#<GTP TEID>. Note that multiple endpoints can be notified by a single
+	//event. <S1UL_TUN_ENDPOINT> fields are separated by hashtag '#' in a event string.
 	DualConnectivity EventCategory = iota
 )
 
