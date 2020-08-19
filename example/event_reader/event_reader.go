@@ -11,21 +11,9 @@ import (
 	"fmt"
 	"github.com/nokia/ue-nib-library/pkg/uenib"
 	"github.com/nokia/ue-nib-library/pkg/uenibreader"
-	"regexp"
-	"strings"
 	"sync"
 	"time"
 )
-
-type ueEventInfo struct {
-	ueID             uenib.UeID
-	s1ULTunEndpoints []gtpTunnel
-}
-
-type gtpTunnel struct {
-	address string
-	teid    string
-}
 
 type logEvent struct {
 	function string
@@ -35,8 +23,7 @@ type logEvent struct {
 var someGNb string
 var myReader *uenibreader.Reader
 var ueDcReaderWaitGroup sync.WaitGroup
-var ueDcEstablishEventChannel chan ueEventInfo
-var ueDcReleaseEventChannel chan ueEventInfo
+var ueDcEventHandlerChannel chan uenibreader.DcEvent
 var loggerWaitGroup sync.WaitGroup
 var logChannel chan logEvent
 
@@ -44,39 +31,48 @@ func init() {
 	myReader = uenibreader.NewReader()
 	//A channel is created per GNb 'someGNb'
 	someGNb = "somegnb:310-410-b5c67788"
-	//someGNb = "someGNbID0"
-	ueDcEstablishEventChannel = make(chan ueEventInfo)
-	ueDcReleaseEventChannel = make(chan ueEventInfo)
+	//someGNb = "gnb-0"
+	ueDcEventHandlerChannel = make(chan uenibreader.DcEvent)
 	logChannel = make(chan logEvent)
 }
 
-func queryExecutor(wg *sync.WaitGroup) {
+func eventHandler(wg *sync.WaitGroup) {
 	fmt.Printf("Reader Query Go routine starts\n")
 	defer wg.Done()
 	for {
 		select {
-		case info, ok := <-ueDcEstablishEventChannel:
+		case evtInfo, ok := <-ueDcEventHandlerChannel:
 			if !ok {
-				fmt.Printf("UE DC establish channel closed, exit Reader Query Go routine\n")
+				fmt.Printf("Event handler channel closed, exit Reader Query Go routine\n")
 				return
 			}
-			doSomeDbQueries(&info, "Establish")
-		case info, ok := <-ueDcReleaseEventChannel:
-			if !ok {
-				fmt.Printf("UE DC release channel closed, exit Reader Query Go routine\n")
-				return
-			}
-			doSomeDbQueries(&info, "Release")
+			handleEvent(&evtInfo)
 		}
 	}
 }
 
-func doSomeDbQueries(info *ueEventInfo, evType string) {
-	doSomeUeDbQueries(&info.ueID, evType)
+func handleEvent(evtInfo *uenibreader.DcEvent) {
+	log := logEvent{function: evtInfo.EventType.String()}
+	log.lines = append(log.lines, fmt.Sprintf("Event = %v", *evtInfo))
+	logChannel <- log
+	switch evtInfo.EventType {
+	case uenibreader.DC_EVENT_S1UL_TUNNEL_ESTABLISH:
+		doSomeDbQueries(evtInfo)
+	case uenibreader.DC_EVENT_S1UL_TUNNEL_RELEASE:
+		doSomeDbQueries(evtInfo)
+	case uenibreader.DC_EVENT_ADD:
+	case uenibreader.DC_EVENT_REMOVE:
+	case uenibreader.DC_EVENT_GNB_ALL_UES_REMOVE:
+	}
 }
 
-func doSomeUeDbQueries(ueID *uenib.UeID, evType string) {
-	log := logEvent{function: evType}
+func doSomeDbQueries(evtInfo *uenibreader.DcEvent) {
+	doSomeUeDbQueries(evtInfo)
+}
+
+func doSomeUeDbQueries(evtInfo *uenibreader.DcEvent) {
+	ueID := &evtInfo.UeID
+	log := logEvent{function: evtInfo.EventType.String()}
 	eNbUeX2ApID, err := myReader.GetMeNbUEX2APID(ueID)
 	if err != nil {
 		panic(fmt.Sprintf("GetMeNbUEX2APID(%s) failed, error: %s\n", ueID.String(), err.Error()))
@@ -111,12 +107,13 @@ func doSomeUeDbQueries(ueID *uenib.UeID, evType string) {
 	logChannel <- log
 
 	for _, erabID := range erabIDs {
-		doSomeUeErabDbQueries(ueID, erabID, evType)
+		doSomeUeErabDbQueries(evtInfo, erabID)
 	}
 }
 
-func doSomeUeErabDbQueries(ueID *uenib.UeID, erabID uenib.ErabID, evType string) {
-	log := logEvent{function: evType}
+func doSomeUeErabDbQueries(evtInfo *uenibreader.DcEvent, erabID uenib.ErabID) {
+	ueID := &evtInfo.UeID
+	log := logEvent{function: evtInfo.EventType.String()}
 
 	te, err := myReader.GetErabS1ULGtpTE(ueID, erabID)
 	if err != nil {
@@ -158,68 +155,18 @@ func logger(wg *sync.WaitGroup, channel chan logEvent) {
 	}
 }
 
-func eventMatches(event string, pattern string) bool {
-	matched, err := regexp.MatchString(pattern, event)
-	if err != nil {
-		panic(fmt.Sprintf("regexp.MatchString failed, error: %s\n", err.Error()))
-	}
-	return matched
-}
-
-func parseEventInfo(event string) ueEventInfo {
-	var retInfo ueEventInfo
-	ueAndS1UPTEP := strings.Split(event, "_")
-	if cnt := len(ueAndS1UPTEP); cnt != 2 {
-		panic(fmt.Sprintf("Wrong number (%d) of UE/S1UL tunnel endpoints in event string: %s\n", cnt, event))
-	}
-	ue := ueAndS1UPTEP[0]
-	s1UPTEP := ueAndS1UPTEP[1]
-
-	retInfo.ueID = parseEventInfoUeId(ue)
-	retInfo.s1ULTunEndpoints = parseEventInfoS1ULTEPs(s1UPTEP)
-	return retInfo
-}
-
-func parseEventInfoUeId(ueStr string) uenib.UeID {
-	var retUeID uenib.UeID
-	ueFields := strings.Split(ueStr, "#")
-	if cnt := len(ueFields); cnt != 3 {
-		panic(fmt.Sprintf("Wrong number (%d) of UE fields in event string: %s\n", cnt, ueStr))
-	}
-	retUeID.GNb = ueFields[0]
-	retUeID.GNbUeX2ApID = ueFields[1]
-	retUeID.ENbUeX2ApID = ueFields[2]
-	return retUeID
-}
-
-func parseEventInfoS1ULTEPs(tepsStr string) []gtpTunnel {
-	var retTEPs []gtpTunnel
-	tepFields := strings.Split(tepsStr, "#")
-	if len(tepFields)%2 != 0 {
-		panic(fmt.Sprintf("S1UL tunnel endpoints address and teid count (%d) not even. String: %s\n",
-			len(tepFields), tepFields))
-	}
-	for i := 0; i < len(tepFields); i = i + 2 {
-		t := gtpTunnel{
-			address: tepFields[i],
-			teid:    tepFields[i+1],
-		}
-		retTEPs = append(retTEPs, t)
-	}
-	return retTEPs
-}
-
 func subscribeEvents() {
 	err := myReader.SubscribeEvents([]string{someGNb}, []uenibreader.EventCategory{uenibreader.DualConnectivity},
 		func(evGNb string, eventCategory uenibreader.EventCategory, evs []string) {
 			for _, ev := range evs {
 				switch eventCategory {
 				case uenibreader.DualConnectivity:
-					if eventMatches(ev, ".*_S1UL_TUNNEL_ESTABLISH") {
-						ueDcEstablishEventChannel <- parseEventInfo(strings.TrimSuffix(ev, "_S1UL_TUNNEL_ESTABLISH"))
+					evInfo, err := uenibreader.ParseDcEvent(ev)
+					if err != nil {
+						panic(fmt.Sprintf("Event parsing failed: %s\n", err.Error()))
 					}
-					if eventMatches(ev, ".*_S1UL_TUNNEL_RELEASE") {
-						ueDcReleaseEventChannel <- parseEventInfo(strings.TrimSuffix(ev, "_S1UL_TUNNEL_RELEASE"))
+					if evInfo.EventType != uenibreader.DC_EVENT_UNKNOWN {
+						ueDcEventHandlerChannel <- evInfo
 					}
 				}
 			}
@@ -236,7 +183,7 @@ func setup() {
 }
 
 func teardown() {
-	close(ueDcEstablishEventChannel)
+	close(ueDcEventHandlerChannel)
 	if !wait(&ueDcReaderWaitGroup, time.Second) {
 		panic("Timeout while waiting reader closing.")
 	}
@@ -268,7 +215,7 @@ func main() {
 	time.Sleep(time.Second)
 
 	ueDcReaderWaitGroup.Add(1)
-	go queryExecutor(&ueDcReaderWaitGroup)
+	go eventHandler(&ueDcReaderWaitGroup)
 
 	//@todo Better closing, now just close the example after 2 seconds.
 	time.Sleep(20 * time.Second)
