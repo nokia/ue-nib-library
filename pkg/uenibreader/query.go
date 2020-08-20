@@ -10,8 +10,8 @@ package uenibreader
 import (
 	"errors"
 	"fmt"
+	"github.com/nokia/ue-nib-library/internal"
 	"github.com/nokia/ue-nib-library/pkg/uenib"
-	"github.com/nokia/ue-nib-library/pkg/uenibreader/internal"
 	"strconv"
 	"strings"
 )
