@@ -1,5 +1,7 @@
 gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.5.3 h1:xiVHa/mIU3TcXOnXl6abCxbc/Oq/amTEO3ID2VKyEYw=
 gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.5.3/go.mod h1:KCHu4JkWnw2Ro6P747wU9S2t7zxFLmBNCiYvGZo3CHo=
+gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.7.0 h1:mxlBo54jxwHHFmGYzFI+fBIkOGwarQP4dx2KBxQ8ln8=
+gerrit.o-ran-sc.org/r/ric-plt/sdlgo.git v0.7.0/go.mod h1:KCHu4JkWnw2Ro6P747wU9S2t7zxFLmBNCiYvGZo3CHo=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=

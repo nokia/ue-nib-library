@@ -13,51 +13,51 @@ import (
 )
 
 func DbKeyUeMapGNbToENbUeX2ApID(ueID *uenib.UeID) string {
-	return ueID.GNb + "," + ueID.GNbUeX2ApID + ",UEMAP_ENBUEX2APID"
+	return ueID.GNbUeX2ApID + ",UEMAP_ENBUEX2APID"
 }
 
 func DbKeyUeMapENbToGNbUeX2ApID(ueID *uenib.UeID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + ",UEMAP_GNBUEX2APID"
+	return ueID.ENbUeX2ApID + ",UEMAP_GNBUEX2APID"
 }
 
 func DbKeyUeStateEvent(ueID *uenib.UeID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + ",UE_STATE_EVENT"
+	return ueID.ENbUeX2ApID + ",UE_STATE_EVENT"
 }
 
 func DbKeyUeStateCause(ueID *uenib.UeID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + ",UE_STATE_CAUSE"
+	return ueID.ENbUeX2ApID + ",UE_STATE_CAUSE"
 }
 
 func DbKeyPsCellPci(ueID *uenib.UeID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + ",UE_PSCELL_PCI"
+	return ueID.ENbUeX2ApID + ",UE_PSCELL_PCI"
 }
 
 func DbKeyPsCellSsbFreq(ueID *uenib.UeID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + ",UE_PSCELL_FREQ"
+	return ueID.ENbUeX2ApID + ",UE_PSCELL_FREQ"
 }
 
 func DbKeyUeErabIDs(ueID *uenib.UeID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + ",UE_ERAB_IDS"
+	return ueID.ENbUeX2ApID + ",UE_ERAB_IDS"
 }
 
 func DbKeyErabDrbID(ueID *uenib.UeID, erabID uenib.ErabID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_DRB_ID"
+	return ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_DRB_ID"
 }
 
 func DbKeyErabS1UlGtpTendpAddr(ueID *uenib.UeID, erabID uenib.ErabID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_S1_UL_GTP_TUNNEL_ADDR"
+	return ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_S1_UL_GTP_TUNNEL_ADDR"
 }
 
 func DbKeyErabS1UlGtpTendpTeid(ueID *uenib.UeID, erabID uenib.ErabID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_S1_UL_GTP_TUNNEL_TEID"
+	return ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_S1_UL_GTP_TUNNEL_TEID"
 }
 
 func DbKeyErabQosArpPL(ueID *uenib.UeID, erabID uenib.ErabID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_QOS_ARP_PL"
+	return ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_QOS_ARP_PL"
 }
 
 func DbKeyErabQosQci(ueID *uenib.UeID, erabID uenib.ErabID) string {
-	return ueID.GNb + "," + ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_QOS_QCI"
+	return ueID.ENbUeX2ApID + "," + fmt.Sprint(erabID) + ",UE_ERAB_QOS_QCI"
 }
 
 func GetErabAllDbKeys(ueID *uenib.UeID, erabID uenib.ErabID) []string {
@@ -68,4 +68,8 @@ func GetErabAllDbKeys(ueID *uenib.UeID, erabID uenib.ErabID) []string {
 		DbKeyErabQosArpPL(ueID, erabID),
 		DbKeyErabQosQci(ueID, erabID),
 	}
+}
+
+func GetUeNibNs(gNb string) string {
+	return "uenib/" + gNb
 }
