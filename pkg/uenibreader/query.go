@@ -328,7 +328,8 @@ func (reader *Reader) getErabIDs(ueID *uenib.UeID) ([]uenib.ErabID, error) {
 func (reader *Reader) newGetQuery(ueID *uenib.UeID, keys []string) (*query, error) {
 	var err error
 	q := &query{}
-	if q.kvMap, err = reader.db.Get(keys); err != nil {
+	ns := internal.GetUeNibNs(ueID.GNb)
+	if q.kvMap, err = reader.db.Get(ns, keys); err != nil {
 		return nil, toBackendError(ueID, err)
 	}
 	return q, err

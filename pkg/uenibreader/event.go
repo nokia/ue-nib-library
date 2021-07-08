@@ -9,6 +9,7 @@ package uenibreader
 
 import (
 	"fmt"
+	"github.com/nokia/ue-nib-library/internal"
 	"github.com/nokia/ue-nib-library/pkg/uenib"
 	"strconv"
 	"strings"
@@ -131,7 +132,8 @@ func (reader *Reader) SubscribeEvents(gNbs []string, eventCategories []EventCate
 				return newValidationError("Unknown event category ID: %d", eventCategories[eventCategoriesIndex])
 			}
 			channel := gNbs[gNbIndex] + "_" + eventCategories[eventCategoriesIndex].String()
-			err := reader.db.SubscribeChannel(reader.eventCallback(gNbs[gNbIndex], eventCategories[eventCategoriesIndex], callback), channel)
+			ns := internal.GetUeNibNs(gNbs[gNbIndex])
+			err := reader.db.SubscribeChannel(ns, reader.eventCallback(gNbs[gNbIndex], eventCategories[eventCategoriesIndex], callback), channel)
 			if err != nil {
 				return newBackendError(err.Error())
 			}

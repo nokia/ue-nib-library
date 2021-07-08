@@ -23,7 +23,7 @@ type Reader struct {
 func NewReader() *Reader {
 	reader := &Reader{}
 	if !disableSdlCreationInConstructor {
-		reader.setDbBackend(sdl.NewSdlInstance("uenib", sdl.NewDatabase()))
+		reader.setDbBackend(sdl.NewSyncStorage())
 	}
 	return reader
 }
@@ -50,8 +50,8 @@ var disableSdlCreationInConstructor bool
 
 //SDL database backend interface.
 type iDbBackend interface {
-	Get(keys []string) (map[string]interface{}, error)
-	SubscribeChannel(cb func(string, ...string), channels ...string) error
+	Get(ns string, keys []string) (map[string]interface{}, error)
+	SubscribeChannel(ns string, cb func(string, ...string), channels ...string) error
 	Close() error
 }
 

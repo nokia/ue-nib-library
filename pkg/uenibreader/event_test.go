@@ -17,6 +17,7 @@ import (
 	"testing"
 )
 
+var someEvNs string
 var someGNb string
 var someEventCategory uenibreader.EventCategory
 var someChannel string
@@ -35,6 +36,7 @@ var expParsedEmptyDcS1ULTunnelEstablishEvent uenibreader.DcEvent
 
 func init() {
 	someGNb = "somegnb:310-410-b5c67788"
+	someEvNs = "uenib/" + someGNb
 	someEventCategory = uenibreader.DualConnectivity
 	someChannel = someGNb + "_" + someEventCategory.String()
 
@@ -140,7 +142,7 @@ func (handler *eventTracker) verify(t *testing.T, expectedCallCount int, expecte
 func TestSubscribeEventsCanSubscribeDualConnectivityEventCategory(t *testing.T) {
 	m, i := setup()
 	eventCategory := uenibreader.DualConnectivity
-	m.On("SubscribeChannel", mock.AnythingOfType("func(string, ...string)"),
+	m.On("SubscribeChannel", someEvNs, mock.AnythingOfType("func(string, ...string)"),
 		[]string{someGNb + "_DUAL_CONNECTIVITY"}).Return(nil).Once()
 
 	err := i.SubscribeEvents([]string{someGNb}, []uenibreader.EventCategory{eventCategory},
@@ -152,7 +154,7 @@ func TestSubscribeEventsCanSubscribeDualConnectivityEventCategory(t *testing.T) 
 func TestSubscribeEventsFailure(t *testing.T) {
 	m, i := setup()
 	dbError := errors.New("Some DB Backend Error")
-	m.On("SubscribeChannel", mock.AnythingOfType("func(string, ...string)"),
+	m.On("SubscribeChannel", someEvNs, mock.AnythingOfType("func(string, ...string)"),
 		[]string{someChannel}).Return(dbError).Once()
 
 	err := i.SubscribeEvents([]string{someGNb}, []uenibreader.EventCategory{someEventCategory},
@@ -169,9 +171,9 @@ func TestSubscribeEventsGetOneEvent(t *testing.T) {
 	m, i := setup()
 	tracker := eventTracker{}
 	var storedSdlCallback func(string, ...string)
-	m.On("SubscribeChannel", mock.AnythingOfType("func(string, ...string)"),
+	m.On("SubscribeChannel", someEvNs, mock.AnythingOfType("func(string, ...string)"),
 		[]string{someChannel}).Run(func(args mock.Arguments) {
-		storedSdlCallback = args.Get(0).(func(string, ...string))
+		storedSdlCallback = args.Get(1).(func(string, ...string))
 	}).Return(nil).Once()
 
 	err := i.SubscribeEvents([]string{someGNb}, []uenibreader.EventCategory{someEventCategory}, tracker.callback)
@@ -198,9 +200,9 @@ func TestSubscribeEventsTwoEventsInOneEvent(t *testing.T) {
 	m, i := setup()
 	tracker := eventTracker{}
 	var storedSdlCallback func(string, ...string)
-	m.On("SubscribeChannel", mock.AnythingOfType("func(string, ...string)"), []string{someChannel}).Run(
+	m.On("SubscribeChannel", someEvNs, mock.AnythingOfType("func(string, ...string)"), []string{someChannel}).Run(
 		func(args mock.Arguments) {
-			storedSdlCallback = args.Get(0).(func(string, ...string))
+			storedSdlCallback = args.Get(1).(func(string, ...string))
 		}).Return(nil).Once()
 	err := i.SubscribeEvents([]string{someGNb}, []uenibreader.EventCategory{someEventCategory}, tracker.callback)
 	assert.Nil(t, err)

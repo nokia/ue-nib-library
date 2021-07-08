@@ -19,16 +19,16 @@ type mockSdlBackend struct {
 	mock.Mock
 }
 
-func (m *mockSdlBackend) Get(keys []string) (map[string]interface{}, error) {
-	a := m.Called(keys)
+func (m *mockSdlBackend) Get(ns string, keys []string) (map[string]interface{}, error) {
+	a := m.Called(ns, keys)
 	if a.Get(0) == nil {
 		return nil, a.Error(1)
 	}
 	return a.Get(0).(map[string]interface{}), a.Error(1)
 }
 
-func (m *mockSdlBackend) SubscribeChannel(cb func(string, ...string), channels ...string) error {
-	a := m.Called(cb, channels)
+func (m *mockSdlBackend) SubscribeChannel(ns string, cb func(string, ...string), channels ...string) error {
+	a := m.Called(ns, cb, channels)
 	return a.Error(0)
 }
 
